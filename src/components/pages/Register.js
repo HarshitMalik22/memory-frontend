@@ -1,51 +1,45 @@
 import React, { useState, useContext, useEffect } from 'react';
 import AuthContext from '../../context/auth/authContext';
-import axios from 'axios';
 
 const Register = (props) => {
-  // Declare and destructure authContext
   const authContext = useContext(AuthContext);
 
   const { register, error, clearErrors, isAuthenticated } = authContext;
 
-  // Declare and destructure component level state
   const [user, setUser] = useState({
     name: '',
     email: '',
     password: '',
   });
 
-  // Declare state for local error handling
   const [localError, setLocalError] = useState('');
 
   const { name, email, password } = user;
 
-  // If user is signed in, redirect to homepage
   useEffect(() => {
     if (isAuthenticated) {
       props.history.push('/');
     }
 
-    // If errors, alert user and clear errors
-    if (error) {
+    if (error === 'Email already exists') {
       alert(error);
       clearErrors();
     }
-
     // eslint-disable-next-line
   }, [error, isAuthenticated, props.history]);
 
-  // Store user input on change
   const onChange = (e) => {
     setUser({ ...user, [e.target.id]: e.target.value });
   };
 
-  // Register user with input object on form submit
+  const handleRegisterSuccess = (token) => {
+    // Save token in localStorage
+    localStorage.setItem('authToken', token); // Save the token for future requests
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
-
-    // Clear previous local error messages
-    setLocalError('');
+    setLocalError(''); // Clear previous error messages
 
     // Validate input fields
     if (!name || !email || !password) {
@@ -53,15 +47,19 @@ const Register = (props) => {
       return;
     }
 
-    // Register the user via the authContext method
     try {
-      await register({
-        username: name,  // Adjust based on API requirement
-        email,
-        password,
-      });
+      // Call register function with the form data
+      const response = await register({ name, email, password });
+
+      // Assuming the response contains the token
+      const token = response.data.token;
+      if (token) {
+        handleRegisterSuccess(token); // Store the token for future requests
+        props.history.push('/'); // Redirect to homepage after successful registration
+      } else {
+        setLocalError('No token received, please try again.');
+      }
     } catch (err) {
-      // Handle backend error here
       console.error('Registration error:', err.response ? err.response.data : err.message);
       if (err.response && err.response.data) {
         setLocalError(err.response.data); // Show specific error from backend
@@ -75,52 +73,50 @@ const Register = (props) => {
     <div className='container form-container'>
       <div className='row'>
         <form className='col s6' onSubmit={onSubmit}>
+          {localError && <p className="error">{localError}</p>} {/* Display local errors */}
+
           <div className='row'>
             <div className='input-field col s9 offset-s8'>
               <input
                 id='name'
                 type='text'
                 className='validate'
-                value={name}
                 onChange={onChange}
+                value={name}
                 required
               />
               <label htmlFor='user-name'>Username</label>
             </div>
           </div>
+
           <div className='row'>
             <div className='input-field col s9 offset-s8'>
               <input
                 id='email'
                 type='email'
                 className='validate'
-                value={email}
                 onChange={onChange}
+                value={email}
                 required
               />
               <label htmlFor='email'>Email</label>
             </div>
           </div>
+
           <div className='row'>
             <div className='input-field col s9 offset-s8'>
               <input
                 id='password'
                 type='password'
                 className='validate'
-                value={password}
                 onChange={onChange}
+                value={password}
                 required
               />
               <label htmlFor='password'>Password</label>
             </div>
           </div>
-          
-          {localError && (
-            <div className="row red-text">
-              <p>{localError}</p>
-            </div>
-          )}
-          
+
           <div className='row'>
             <button
               className='btn waves-effect waves-light red lighten-2 col s9 m5 offset-s8 offset-m10'

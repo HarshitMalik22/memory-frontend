@@ -70,9 +70,6 @@ const Home = () => {
       <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#f4f4f9' }}>
         <Card sx={{ width: '100%', boxShadow: 3, borderRadius: 2, backgroundColor: '#3b3b3b' }}>
           <CardContent sx={{ textAlign: 'center', color: '#ffffff' }}>
-            <Typography variant="h4" sx={{ fontWeight: 600 }}>
-              You have played {games.length} {games.length === 1 ? 'game' : 'games'} so far!
-            </Typography>
             <Typography variant="h6" sx={{ mt: 2 }}>
               Your High Scores (Lowest number of moves you took to complete the game):
             </Typography>
@@ -154,4 +151,3 @@ const Home = () => {
 };
 
 export default Home;
-

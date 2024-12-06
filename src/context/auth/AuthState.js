@@ -14,8 +14,11 @@ import {
   REGISTER_SUCCESS,
 } from '../types';
 
+// Backend URL
+const BASE_URL = 'https://memory-backend-production-1b1e.up.railway.app';
+
 const AuthState = (props) => {
-  // declare inicial state
+  // Declare initial state
   const initialState = {
     token: localStorage.getItem('token'),
     isAuthenticated: null,
@@ -24,75 +27,69 @@ const AuthState = (props) => {
     error: null,
   };
 
-  // declare state/dispatch with useReducer hook
+  // Declare state/dispatch with useReducer hook
   const [state, dispatch] = useReducer(authReducer, initialState);
 
   // Load User
   const loadUser = async () => {
-    // check localstorage has a token, setAUthToken if so
+    // Check if localStorage has a token and setAuthToken if so
     if (localStorage.token) {
       setAuthToken(localStorage.token);
     }
 
-    // declare response from backend, dispatch data to USER_LOADED
     try {
-      const res = await axios.get('/api/auth');
+      // Use the backend URL
+      const res = await axios.get(`${BASE_URL}/api/auth`);
 
       dispatch({
         type: USER_LOADED,
         payload: res.data,
       });
-      // dispatch error msg to AUTH_ERROR
     } catch (error) {
       dispatch({
         type: AUTH_ERROR,
-        payload: error.response.data.msg,
+        payload: error.response?.data?.msg || 'Error loading user',
       });
     }
   };
 
   // Register User
   const register = async (formData) => {
-    // declare config variable with header
     const config = {
-      header: {
+      headers: {
         'Content-Type': 'application/json',
       },
     };
 
-    // declare response from backend, post user data
     try {
-      const res = await axios.post('/api/users', formData, config);
+      // Use the backend URL
+      const res = await axios.post(`${BASE_URL}/api/users`, formData, config);
 
-      // dispatch data to reducer
       dispatch({
         type: REGISTER_SUCCESS,
         payload: res.data,
       });
 
-      // load user
       loadUser();
-      // dispatch error if found
     } catch (error) {
       dispatch({
         type: REGISTER_FAIL,
-        payload: error.response.data.msg,
+        payload: error.response?.data?.msg || 'Registration failed',
       });
     }
   };
 
   // Login User
   const login = async (formData) => {
-    // declare config variable with header
     const config = {
-      header: {
+      headers: {
         'Content-Type': 'application/json',
       },
     };
 
-    // declare response from post, dispatch to reducer
     try {
-      const res = await axios.post('/api/auth', formData, config);
+      // Use the backend URL
+      const res = await axios.post(`${BASE_URL}/api/auth`, formData, config);
 
       dispatch({
         type: LOGIN_SUCCESS,
@@ -100,11 +97,10 @@ const AuthState = (props) => {
       });
 
       loadUser();
-      // dispatch error if found
     } catch (error) {
       dispatch({
         type: LOGIN_FAIL,
-        payload: error.response.data.msg,
+        payload: error.response?.data?.msg || 'Login failed',
       });
     }
   };
@@ -120,7 +116,6 @@ const AuthState = (props) => {
   };
 
   return (
-    // return all variables and functions to provider
     <AuthContext.Provider
       value={{
         token: state.token,
@@ -140,4 +135,4 @@ const AuthState = (props) => {
   );
 };
 
-export default AuthState; 
+export default AuthState;

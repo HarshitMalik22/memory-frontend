@@ -1,4 +1,4 @@
-import React, { useReducer } from 'react';
+import React, { useReducer, useEffect } from 'react';
 import axios from 'axios';
 import AuthContext from './authContext';
 import authReducer from './authReducer';
@@ -34,12 +34,12 @@ const AuthState = (props) => {
   const loadUser = async () => {
     // Check if localStorage has a token and setAuthToken if so
     if (localStorage.token) {
-      setAuthToken(localStorage.token);
+      setAuthToken(localStorage.token);  // Ensure this function sets the Authorization header
     }
 
     try {
       // Use the backend URL
-      const res = await axios.get(`${BASE_URL}/api/auth`);
+      const res = await axios.get(`${BASE_URL}/api/auth`);  // Adjust this to the correct endpoint for user loading
 
       dispatch({
         type: USER_LOADED,
@@ -70,7 +70,7 @@ const AuthState = (props) => {
         payload: res.data,
       });
 
-      loadUser();
+      loadUser();  // Call loadUser to get user data after successful registration
     } catch (error) {
       dispatch({
         type: REGISTER_FAIL,
@@ -96,7 +96,7 @@ const AuthState = (props) => {
         payload: res.data,
       });
 
-      loadUser();
+      loadUser();  // Call loadUser to get user data after successful login
     } catch (error) {
       dispatch({
         type: LOGIN_FAIL,
@@ -107,6 +107,8 @@ const AuthState = (props) => {
 
   // Logout
   const logout = () => {
+    // Remove token from localStorage and update state
+    localStorage.removeItem('token');
     dispatch({ type: LOGOUT });
   };
 
@@ -114,6 +116,15 @@ const AuthState = (props) => {
   const clearErrors = () => {
     dispatch({ type: CLEAR_ERRORS });
   };
+
+  // UseEffect to load user when the component mounts (i.e., on refresh or app start)
+  useEffect(() => {
+    if (state.token) {
+      loadUser();  // Load user if token exists in state
+    } else {
+      dispatch({ type: AUTH_ERROR });  // If no token, trigger auth error
+    }
+  }, [state.token]);  // Depend on token state to re-trigger on changes
 
   return (
     <AuthContext.Provider

@@ -1,53 +1,77 @@
 import React, { useState, useContext, useEffect } from 'react';
 import AuthContext from '../../context/auth/authContext';
+import axios from 'axios';
 
-// bring in props
 const Register = (props) => {
-  // declare and destructure authContext
+  // Declare and destructure authContext
   const authContext = useContext(AuthContext);
 
   const { register, error, clearErrors, isAuthenticated } = authContext;
 
-  // declare and destructure component level state
+  // Declare and destructure component level state
   const [user, setUser] = useState({
     name: '',
     email: '',
     password: '',
   });
 
+  // Declare state for local error handling
+  const [localError, setLocalError] = useState('');
+
   const { name, email, password } = user;
 
-  // if user is signed in, go to homepage
+  // If user is signed in, redirect to homepage
   useEffect(() => {
     if (isAuthenticated) {
       props.history.push('/');
     }
 
-    // if errors, alert user and clear errors
-    if (error === 'Email already exists') {
+    // If errors, alert user and clear errors
+    if (error) {
       alert(error);
       clearErrors();
     }
+
     // eslint-disable-next-line
   }, [error, isAuthenticated, props.history]);
 
-  // store user input on change
+  // Store user input on change
   const onChange = (e) => {
     setUser({ ...user, [e.target.id]: e.target.value });
   };
 
-  // register user with input object on form submit
-  const onSubmit = (e) => {
+  // Register user with input object on form submit
+  const onSubmit = async (e) => {
     e.preventDefault();
-    register({
-      name,
-      email,
-      password,
-    });
+
+    // Clear previous local error messages
+    setLocalError('');
+
+    // Validate input fields
+    if (!name || !email || !password) {
+      setLocalError('Please fill in all fields');
+      return;
+    }
+
+    // Register the user via the authContext method
+    try {
+      await register({
+        username: name,  // Adjust based on API requirement
+        email,
+        password,
+      });
+    } catch (err) {
+      // Handle backend error here
+      console.error('Registration error:', err.response ? err.response.data : err.message);
+      if (err.response && err.response.data) {
+        setLocalError(err.response.data); // Show specific error from backend
+      } else {
+        setLocalError('An unexpected error occurred. Please try again later.');
+      }
+    }
   };
 
   return (
-    // materialize CSS form
     <div className='container form-container'>
       <div className='row'>
         <form className='col s6' onSubmit={onSubmit}>
@@ -57,6 +81,7 @@ const Register = (props) => {
                 id='name'
                 type='text'
                 className='validate'
+                value={name}
                 onChange={onChange}
                 required
               />
@@ -69,6 +94,7 @@ const Register = (props) => {
                 id='email'
                 type='email'
                 className='validate'
+                value={email}
                 onChange={onChange}
                 required
               />
@@ -81,12 +107,20 @@ const Register = (props) => {
                 id='password'
                 type='password'
                 className='validate'
+                value={password}
                 onChange={onChange}
                 required
               />
               <label htmlFor='password'>Password</label>
             </div>
           </div>
+          
+          {localError && (
+            <div className="row red-text">
+              <p>{localError}</p>
+            </div>
+          )}
+          
           <div className='row'>
             <button
               className='btn waves-effect waves-light red lighten-2 col s9 m5 offset-s8 offset-m10'

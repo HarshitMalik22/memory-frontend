@@ -5,7 +5,7 @@ import Home from './components/pages/Home';
 import Signin from './components/pages/Signin';
 import Register from './components/pages/Register';
 import Game from './components/pages/Game';
-import PrivateRoute from './components/routing/privateRoute';
+import PrivateRoute from './components/routing/PrivateRoute';
 
 import HistoryState from './context/history/HistoryState';
 import AuthState from './context/auth/AuthState';

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Box, Button, Typography, Grid, Card, CardContent } from '@mui/material';
 import HistoryContext from '../../context/history/historyContext';
 import AuthContext from '../../context/auth/authContext';
+import { BASE_URL } from '../../config';  // Import the BASE_URL from config file
 
 const Home = () => {
   const historyContext = useContext(HistoryContext);
@@ -25,7 +26,7 @@ const Home = () => {
 
   const fetchHighscore = async (level) => {
     try {
-      const res = await fetch(`/api/highscore/${level}`, {
+      const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {  // Use BASE_URL here
         headers: { 'x-auth-token': localStorage.token },
       });
 
@@ -151,3 +152,4 @@ const Home = () => {
 };
 
 export default Home;
+

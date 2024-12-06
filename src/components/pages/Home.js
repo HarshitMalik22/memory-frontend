@@ -26,7 +26,7 @@ const Home = () => {
 
   const fetchHighscore = async (level) => {
     try {
-      const res = await fetch(${BASE_URL}/api/highscore/${level}, {
+      const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
         headers: { 'x-auth-token': localStorage.token },
       });
 

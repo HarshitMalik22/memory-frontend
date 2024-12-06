@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';  // Changed Switch to Routes for React Router v6
 import Navbar from './components/layouts/Navbar';
 import Home from './components/pages/Home';
 import Signin from './components/pages/Signin';
@@ -12,28 +12,29 @@ import AuthState from './context/auth/AuthState';
 import setAuthToken from './utils/setAuthToken';
 import './App.css';
 
+// If a token is found in localStorage, set it globally
 if (localStorage.token) {
   setAuthToken(localStorage.token);
 }
 
 const App = () => {
   return (
-    // auth and history contexts
+    // Auth and History contexts
     <AuthState>
       <HistoryState>
-        {/* router for navigation */}
+        {/* Router for navigation */}
         <Router>
           <div className='App'>
-            {/* navbar component */}
+            {/* Navbar component */}
             <Navbar />
             <div className='Routes'>
-              {/* private/public routes for app */}
-              <Switch>
-                <PrivateRoute exact path='/' component={Home} />
-                <Route exact path='/signin' component={Signin} />
-                <Route exact path='/register' component={Register} />
-                <PrivateRoute exact path='/game' component={Game} />
-              </Switch>
+              {/* Private/public routes for the app */}
+              <Routes>
+                <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+                <Route path="/signin" element={<Signin />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/game" element={<PrivateRoute><Game /></PrivateRoute>} />
+              </Routes>
             </div>
           </div>
         </Router>

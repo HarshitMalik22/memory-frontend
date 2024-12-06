@@ -26,16 +26,16 @@ const Home = () => {
 
   const fetchHighscore = async (level) => {
     try {
-      const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
+      const res = await fetch(${BASE_URL}/api/highscore/${level}, {
         headers: { 'x-auth-token': localStorage.token },
       });
 
       if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
+        throw new Error(HTTP error! status: ${res.status});
       }
 
       const data = await res.json();
-      console.log(`Fetched high score for ${level}:`, data);
+      console.log(Fetched high score for ${level}:, data);
       return data.moves === 'No high score yet' ? 'No high score yet' : data.moves;
     } catch (err) {
       console.error('Error fetching high score:', err);
@@ -70,6 +70,9 @@ const Home = () => {
       <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#f4f4f9' }}>
         <Card sx={{ width: '100%', boxShadow: 3, borderRadius: 2, backgroundColor: '#3b3b3b' }}>
           <CardContent sx={{ textAlign: 'center', color: '#ffffff' }}>
+            <Typography variant="h4" sx={{ fontWeight: 600 }}>
+              You have played {games.length} {games.length === 1 ? 'game' : 'games'} so far!
+            </Typography>
             <Typography variant="h6" sx={{ mt: 2 }}>
               Your High Scores (Lowest number of moves you took to complete the game):
             </Typography>

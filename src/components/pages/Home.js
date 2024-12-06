@@ -11,6 +11,12 @@ const Home = () => {
 
   const { games, updateCurrentLevel, updateCurrentTheme, getGames } = historyContext;
   const [chosenTheme, setChosenTheme] = useState('');
+  const [highScores, setHighScores] = useState({
+    beginner: 'Loading...',
+    intermediate: 'Loading...',
+    expert: 'Loading...',
+  });
+  const [loading, setLoading] = useState(true); // Add loading state for async fetching
 
   useEffect(() => {
     authContext.loadUser();
@@ -18,15 +24,9 @@ const Home = () => {
     // eslint-disable-next-line
   }, []);
 
-  const [highScores, setHighScores] = useState({
-    beginner: 'Loading...',
-    intermediate: 'Loading...',
-    expert: 'Loading...',
-  });
-
   const fetchHighscore = async (level) => {
     try {
-      const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {  // Use BASE_URL here
+      const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
         headers: { 'x-auth-token': localStorage.token },
       });
 
@@ -45,10 +45,12 @@ const Home = () => {
 
   useEffect(() => {
     const fetchAllHighScores = async () => {
+      setLoading(true);  // Set loading to true while fetching
       const beginner = await fetchHighscore('beginner');
       const intermediate = await fetchHighscore('intermediate');
       const expert = await fetchHighscore('expert');
       setHighScores({ beginner, intermediate, expert });
+      setLoading(false);  // Set loading to false when fetching completes
     };
     fetchAllHighScores();
   }, []);
@@ -72,20 +74,20 @@ const Home = () => {
               You have played {games.length} {games.length === 1 ? 'game' : 'games'} so far!
             </Typography>
             <Typography variant="h6" sx={{ mt: 2 }}>
-              Your High Scores(Lowest number of moves you took to complete the game):
+              Your High Scores (Lowest number of moves you took to complete the game):
             </Typography>
             <Grid container spacing={4} sx={{ mt: 2 }}>
               <Grid item xs={4} sx={{ textAlign: 'center' }}>
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Easy</Typography>
-                <Typography sx={{ color: '#f9f9f9' }}>{highScores.beginner}</Typography>
+                <Typography sx={{ color: '#f9f9f9' }}>{loading ? 'Loading...' : highScores.beginner}</Typography>
               </Grid>
               <Grid item xs={4} sx={{ textAlign: 'center' }}>
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Medium</Typography>
-                <Typography sx={{ color: '#f9f9f9' }}>{highScores.intermediate}</Typography>
+                <Typography sx={{ color: '#f9f9f9' }}>{loading ? 'Loading...' : highScores.intermediate}</Typography>
               </Grid>
               <Grid item xs={4} sx={{ textAlign: 'center' }}>
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Hard</Typography>
-                <Typography sx={{ color: '#f9f9f9' }}>{highScores.expert}</Typography>
+                <Typography sx={{ color: '#f9f9f9' }}>{loading ? 'Loading...' : highScores.expert}</Typography>
               </Grid>
             </Grid>
             <Typography variant="h5" sx={{ mt: 4, fontWeight: 600 }}>

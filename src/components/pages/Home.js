@@ -91,10 +91,10 @@ const Home = () => {
           <CardContent sx={{ textAlign: 'center', color: '#ffffff' }}>
             <Typography variant="h4" sx={{ fontWeight: 600 }}>
               You have played {games.length} {games.length === 1 ? 'game' : 'games'} so far!
-            </Typography>
-            <Typography variant="h6" sx={{ mt: 2 }}>
-              Your High Scores (Lowest number of moves you took to complete the game):
-            </Typography>
+            // </Typography>
+            // <Typography variant="h6" sx={{ mt: 2 }}>
+            //   Your High Scores (Lowest number of moves you took to complete the game):
+            // </Typography>
             <Grid container spacing={4} sx={{ mt: 2 }}>
               <Grid item xs={4} sx={{ textAlign: 'center' }}>
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Easy</Typography>

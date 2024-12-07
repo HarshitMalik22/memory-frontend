@@ -22,8 +22,8 @@ const Register = (props) => {
     }
 
     if (error === 'Email already exists') {
-      alert(error);
-      clearErrors();
+      setLocalError(error); // Show specific backend error
+      clearErrors(); // Clear error after showing it
     }
     // eslint-disable-next-line
   }, [error, isAuthenticated, props.history]);
@@ -34,7 +34,7 @@ const Register = (props) => {
 
   const handleRegisterSuccess = (token) => {
     // Save token in localStorage
-    localStorage.setItem('authToken', token); // Save the token for future requests
+    localStorage.setItem('authToken', token);
   };
 
   const onSubmit = async (e) => {
@@ -62,7 +62,7 @@ const Register = (props) => {
     } catch (err) {
       console.error('Registration error:', err.response ? err.response.data : err.message);
       if (err.response && err.response.data) {
-        setLocalError(err.response.data); // Show specific error from backend
+        setLocalError(err.response.data.msg || 'Registration failed, please try again.'); // Show specific error from backend
       } else {
         setLocalError('An unexpected error occurred. Please try again later.');
       }
@@ -134,3 +134,4 @@ const Register = (props) => {
 };
 
 export default Register;
+

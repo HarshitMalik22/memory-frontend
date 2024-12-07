@@ -23,11 +23,34 @@ const Home = () => {
     // eslint-disable-next-line
   }, []);
 
-   const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
+  const fetchHighscore = async (level) => {
+    try {
+      const token = localStorage.getItem('token'); // Get the token from localStorage
+      const userId = authContext.user?._id; // Get the user ID from context or use another source
+      if (!token || !userId) {
+        console.error('Token or User ID missing');
+        return 'Token or User ID missing';
+      }
+
+      const res = await fetch(`${BASE_URL}/api/highscore/${level}/${userId}`, {
         headers: { 'x-auth-token': token },
       });
 
-  // Fetch all high scores when the component mounts
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`HTTP error! Status: ${res.status}, Message: ${errorText}`);
+      }
+
+      const data = await res.json();
+      console.log(`Fetched high score for ${level}:`, data);
+
+      return data.moves ? data.moves : 'No high score yet'; // Return the user's high score or a default message
+    } catch (err) {
+      console.error('Error fetching high score:', err);
+      return 'Error fetching high score';
+    }
+  };
+
   useEffect(() => {
     let isMounted = true; // Track whether the component is still mounted
 
@@ -57,35 +80,6 @@ const Home = () => {
 
   const onClick = (level) => {
     updateCurrentLevel(level);
-  };
-
-  // Update the high score for the current user
-  const updateHighscore = async (level, moves) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.error('No token found');
-      return;
-    }
-
-    try {
-      const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': token,
-        },
-        body: JSON.stringify({ moves }),
-      });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Error updating highscore: ${errorText}`);
-      }
-
-      console.log(`Updated highscore for ${level}: ${moves}`);
-    } catch (err) {
-      console.error('Error updating high score:', err);
-    }
   };
 
   return (

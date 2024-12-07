@@ -51,6 +51,7 @@ const Home = () => {
     }
   };
 
+  // Fetch all high scores when the component mounts
   useEffect(() => {
     let isMounted = true; // Track whether the component is still mounted
 
@@ -80,6 +81,35 @@ const Home = () => {
 
   const onClick = (level) => {
     updateCurrentLevel(level);
+  };
+
+  // Update the high score for the current user
+  const updateHighscore = async (level, moves) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No token found');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+        body: JSON.stringify({ moves }),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Error updating highscore: ${errorText}`);
+      }
+
+      console.log(`Updated highscore for ${level}: ${moves}`);
+    } catch (err) {
+      console.error('Error updating high score:', err);
+    }
   };
 
   return (

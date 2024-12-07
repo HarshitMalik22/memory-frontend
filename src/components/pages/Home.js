@@ -26,14 +26,18 @@ const Home = () => {
   const fetchHighscore = async (level) => {
   try {
     const token = localStorage.getItem('token'); // Retrieve token from localStorage
-    console.log("Token:", token);  // Log token to ensure it's being fetched
+    const email = localStorage.getItem('email');  // Assuming email is saved in localStorage after login
 
-    if (!token) {
-      console.error('No token found');
-      return 'Token is missing';
+    console.log("Token:", token);  // Log token to ensure it's being fetched
+    console.log("Email:", email);  // Log email to ensure it's being fetched
+
+    if (!token || !email) {
+      console.error('Token or Email missing');
+      return 'Token or Email is missing';
     }
 
-    const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
+    // Add email as a query parameter or part of the URL
+    const res = await fetch(`${BASE_URL}/api/highscore/${level}?email=${email}`, {
       headers: { 'x-auth-token': token },
     });
 
@@ -51,6 +55,7 @@ const Home = () => {
     return 'Error fetching high score';
   }
 };
+
 
 
   useEffect(() => {

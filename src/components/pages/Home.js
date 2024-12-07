@@ -1,189 +1,165 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Box, Button, Typography, Grid, Card, CardContent } from '@mui/material';
 import HistoryContext from '../../context/history/historyContext';
 import AuthContext from '../../context/auth/authContext';
-import { BASE_URL } from '../../config';  // Ensure to import your API base URL
+import { BASE_URL } from '../../config';  // Import the BASE_URL from config file
 
 const Home = () => {
   const historyContext = useContext(HistoryContext);
   const authContext = useContext(AuthContext);
 
   const { games, updateCurrentLevel, updateCurrentTheme, getGames } = historyContext;
-
-  // Declare component level state
-  const [chosenTheme, setChosenTheme] = useState('');
   const [highScores, setHighScores] = useState({
     beginner: 'Loading...',
     intermediate: 'Loading...',
     expert: 'Loading...',
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Add loading state for async fetching
 
-  // Load user and get game data
   useEffect(() => {
-    authContext.loadUser();
+    authContext.loadUser(); // Load the authenticated user
     getGames();
-    fetchHighScores();
+    // eslint-disable-next-line
   }, []);
 
-  // Fetch high scores from the backend
-  const fetchHighScores = async () => {
+  const fetchHighscore = async (level) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token'); // Use localStorage.getItem for better readability
       if (!token) {
-        console.error('Token is missing');
-        return;
+        console.error('No token found');
+        return 'Token is missing';
       }
 
-      const res = await fetch(`${BASE_URL}/api/highscore`, {
+      const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
         headers: { 'x-auth-token': token },
       });
 
       if (!res.ok) {
-        throw new Error('Failed to fetch high scores');
+        const errorText = await res.text();  // Capture any error message from the server
+        throw new Error(`HTTP error! Status: ${res.status}, Message: ${errorText}`);
       }
 
       const data = await res.json();
-      setHighScores({
-        beginner: data.beginner || 'No high score yet',
-        intermediate: data.intermediate || 'No high score yet',
-        expert: data.expert || 'No high score yet',
-      });
-      setLoading(false);
+      console.log(`Fetched high score for ${level}:`, data);
+
+      // Check if high score exists and return it, else return a default message
+      return data.moves ? data.moves : 'No high score yet';
     } catch (err) {
-      console.error('Error fetching high scores:', err);
-      setLoading(false);
+      console.error('Error fetching high score:', err);
+      return 'Error fetching high score';
     }
   };
 
-  // Enable materialize dropdown functionality
   useEffect(() => {
-    window.M.AutoInit();
+    let isMounted = true; // Track whether the component is still mounted
+
+    const fetchAllHighScores = async () => {
+      setLoading(true);  // Set loading to true while fetching
+      const beginner = await fetchHighscore('beginner');
+      const intermediate = await fetchHighscore('intermediate');
+      const expert = await fetchHighscore('expert');
+
+      if (isMounted) {
+        setHighScores({ beginner, intermediate, expert });
+        setLoading(false);  // Set loading to false when fetching completes
+      }
+    };
+
+    fetchAllHighScores();
+
+    return () => {
+      isMounted = false; // Clean up flag on component unmount
+    };
   }, []);
 
-  // Calculate average moves
-  const getAvg = (data, level) => {
-    const gameArr = data.filter((game) => game.gameLevel === level).map((game) => game.numOfMoves);
-
-    if (gameArr.length > 0) {
-      return Math.floor(gameArr.reduce((a, b) => a + b) / gameArr.length);
-    } else {
-      return 'No games played';
-    }
-  };
-
-  // Store current level
-  const onClick = (e) => {
-    updateCurrentLevel(e.target.name);
-  };
-
-  // Store current theme
   const handleClick = (e) => {
-    updateCurrentTheme(e.target.name);
-    setChosenTheme(e.target.name);
+    const themeName = e.target.name;
+    updateCurrentTheme(themeName);
+  };
+
+  const onClick = (level) => {
+    updateCurrentLevel(level);
   };
 
   return (
     !authContext.loading && (
-      <div className="row container">
-        <div className="col s12">
-          <div className="card blue-grey darken-1 large">
-            <div className="card-content white-text">
-              <span className="center card-title hide-on-small-only">
-                You have played {games.length} {games.length === 1 ? 'game' : 'games'} so far!
-              </span>
-              <span className="center card-title hide-on-med-and-up">
-                {games.length} {games.length === 1 ? 'Game ' : 'Games '} Played!
-              </span>
-              <br />
-              <span className="center card-title hide-on-small-only">Your Average Number of Moves:</span>
-              <span className="center card-title hide-on-med-and-up">Average Moves:</span>
-              <br />
-              <div className="row col s12">
-                <div className="col s4 center">
-                  <u>Easy</u>
-                </div>
-                <div className="col s4 center">
-                  <u>Medium</u>
-                </div>
-                <div className="col s4 center">
-                  <u>Hard</u>
-                </div>
-              </div>
-              <div className="row col s12">
-                <div className="col s4 center">
-                  <p>{loading ? 'Loading...' : highScores.beginner}</p>
-                </div>
-                <div className="col s4 center">
-                  <p>{loading ? 'Loading...' : highScores.intermediate}</p>
-                </div>
-                <div className="col s4 center">
-                  <p>{loading ? 'Loading...' : highScores.expert}</p>
-                </div>
-              </div>
-              <br />
-              <span className="center card-title">Start A New Game Below!</span>
-            </div>
-            <div className="row center-align">
-              <a className="dropdown-trigger btn blue-grey darken-1" href="#" data-target="dropdown1">
-                {chosenTheme.length > 0 ? chosenTheme : 'Choose A Theme!'}
-              </a>
-              <ul id="dropdown1" className="dropdown-content">
-                <li>
-                  <a href="#" onClick={handleClick} name="robots" className="blue-grey-text text-darken-1">
-                    Robots
-                  </a>
-                </li>
-                <li className="divider" tabIndex="-1"></li>
-                <li>
-                  <a href="#" onClick={handleClick} name="cats" className="blue-grey-text text-darken-1">
-                    Cats
-                  </a>
-                </li>
-                <li className="divider" tabIndex="-1"></li>
-                <li>
-                  <a href="#" onClick={handleClick} name="monsters" className="blue-grey-text text-darken-1">
-                    Monsters
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div className="col s12 card-action">
-              <div className="col s4 center">
-                <Link
-                  to="/game"
-                  className="waves-effect waves-red btn-flat"
-                  name="beginner"
-                  onClick={onClick}
-                >
-                  Easy
+      <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#f4f4f9' }}>
+        <Card sx={{ width: '100%', boxShadow: 3, borderRadius: 2, backgroundColor: '#3b3b3b' }}>
+          <CardContent sx={{ textAlign: 'center', color: '#ffffff' }}>
+            <Typography variant="h6" sx={{ mt: 2 }}>
+              Your High Scores (Lowest number of moves you took to complete the game):
+            </Typography>
+            <Grid container spacing={4} sx={{ mt: 2 }}>
+              <Grid item xs={4} sx={{ textAlign: 'center' }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Easy</Typography>
+                <Typography sx={{ color: '#f9f9f9' }}>{loading ? 'Loading...' : highScores.beginner}</Typography>
+              </Grid>
+              <Grid item xs={4} sx={{ textAlign: 'center' }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Medium</Typography>
+                <Typography sx={{ color: '#f9f9f9' }}>{loading ? 'Loading...' : highScores.intermediate}</Typography>
+              </Grid>
+              <Grid item xs={4} sx={{ textAlign: 'center' }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Hard</Typography>
+                <Typography sx={{ color: '#f9f9f9' }}>{loading ? 'Loading...' : highScores.expert}</Typography>
+              </Grid>
+            </Grid>
+            <Typography variant="h5" sx={{ mt: 4, fontWeight: 600 }}>
+              Start A New Game Below!
+            </Typography>
+            <Grid container spacing={4} sx={{ mt: 4 }}>
+              <Grid item xs={4}>
+                <Link to="/game" style={{ textDecoration: 'none' }}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    sx={{
+                      backgroundColor: '#00796b',
+                      color: '#ffffff',
+                      '&:hover': { backgroundColor: '#004d40' },
+                    }}
+                    onClick={() => onClick('beginner')}
+                  >
+                    Easy
+                  </Button>
                 </Link>
-              </div>
-              <div className="col s4 center">
-                <Link
-                  to="/game"
-                  className="waves-effect waves-red btn-flat"
-                  name="intermediate"
-                  onClick={onClick}
-                >
-                  <span className="hide-on-small-only">Medium</span>
-                  <span className="hide-on-med-and-up">Med</span>
+              </Grid>
+              <Grid item xs={4}>
+                <Link to="/game" style={{ textDecoration: 'none' }}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    sx={{
+                      backgroundColor: '#0288d1',
+                      color: '#ffffff',
+                      '&:hover': { backgroundColor: '#01579b' },
+                    }}
+                    onClick={() => onClick('intermediate')}
+                  >
+                    Medium
+                  </Button>
                 </Link>
-              </div>
-              <div className="col s4 center">
-                <Link
-                  to="/game"
-                  className="waves-effect waves-red btn-flat"
-                  name="expert"
-                  onClick={onClick}
-                >
-                  Hard
+              </Grid>
+              <Grid item xs={4}>
+                <Link to="/game" style={{ textDecoration: 'none' }}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    sx={{
+                      backgroundColor: '#d32f2f',
+                      color: '#ffffff',
+                      '&:hover': { backgroundColor: '#c2185b' },
+                    }}
+                    onClick={() => onClick('expert')}
+                  >
+                    Hard
+                  </Button>
                 </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      </Box>
     )
   );
 };

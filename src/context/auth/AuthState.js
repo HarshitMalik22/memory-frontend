@@ -39,7 +39,7 @@ const AuthState = (props) => {
 
     try {
       // Use the backend URL
-      const res = await axios.get(`${BASE_URL}/api/auth`);  // Adjust this to the correct endpoint for user loading
+      const res = await axios.get(`${BASE_URL}/api/auth`, { headers: { Authorization: `Bearer ${localStorage.token}` } });
 
       dispatch({
         type: USER_LOADED,
@@ -63,7 +63,7 @@ const AuthState = (props) => {
 
     try {
       // Use the backend URL
-      const res = await axios.post(`${BASE_URL}/api/users`, formData, config);
+      const res = await axios.post(`${BASE_URL}/api/auth/register`, formData, config);
 
       dispatch({
         type: REGISTER_SUCCESS,
@@ -89,7 +89,7 @@ const AuthState = (props) => {
 
     try {
       // Use the backend URL
-      const res = await axios.post(`${BASE_URL}/api/auth`, formData, config);
+      const res = await axios.post(`${BASE_URL}/api/auth/signin`, formData, config);
 
       dispatch({
         type: LOGIN_SUCCESS,
@@ -119,12 +119,13 @@ const AuthState = (props) => {
 
   // UseEffect to load user when the component mounts (i.e., on refresh or app start)
   useEffect(() => {
-    if (state.token) {
-      loadUser();  // Load user if token exists in state
+    if (localStorage.token) {
+      setAuthToken(localStorage.token);
+      loadUser();
     } else {
-      dispatch({ type: AUTH_ERROR });  // If no token, trigger auth error
+      dispatch({ type: AUTH_ERROR });
     }
-  }, [state.token]);  // Depend on token state to re-trigger on changes
+  }, []); // Depend on token state to re-trigger on changes
 
   return (
     <AuthContext.Provider
@@ -147,3 +148,4 @@ const AuthState = (props) => {
 };
 
 export default AuthState;
+

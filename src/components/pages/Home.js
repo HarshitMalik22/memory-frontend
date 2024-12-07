@@ -23,33 +23,9 @@ const Home = () => {
     // eslint-disable-next-line
   }, []);
 
-  const fetchHighscore = async (level) => {
-    try {
-      const token = localStorage.getItem('token'); // Use localStorage.getItem for better readability
-      if (!token) {
-        console.error('No token found');
-        return 'Token is missing';
-      }
-
-      const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
+   const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
         headers: { 'x-auth-token': token },
       });
-
-      if (!res.ok) {
-        const errorText = await res.text();  // Capture any error message from the server
-        throw new Error(`HTTP error! Status: ${res.status}, Message: ${errorText}`);
-      }
-
-      const data = await res.json();
-      console.log(`Fetched high score for ${level}:`, data);
-
-      // Check if high score exists and return it, else return a default message
-      return data.moves ? data.moves : 'No high score yet';
-    } catch (err) {
-      console.error('Error fetching high score:', err);
-      return 'Error fetching high score';
-    }
-  };
 
   // Fetch all high scores when the component mounts
   useEffect(() => {

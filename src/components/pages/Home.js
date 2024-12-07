@@ -10,7 +10,6 @@ const Home = () => {
   const authContext = useContext(AuthContext);
 
   const { games, updateCurrentLevel, updateCurrentTheme, getGames } = historyContext;
-  const [chosenTheme, setChosenTheme] = useState('');
   const [highScores, setHighScores] = useState({
     beginner: 'Loading...',
     intermediate: 'Loading...',
@@ -26,7 +25,7 @@ const Home = () => {
 
   const fetchHighscore = async (level) => {
     try {
-      const token = localStorage.token;
+      const token = localStorage.getItem('token'); // Use localStorage.getItem for better readability
       if (!token) {
         console.error('No token found');
         return 'Token is missing';
@@ -77,7 +76,6 @@ const Home = () => {
   const handleClick = (e) => {
     const themeName = e.target.name;
     updateCurrentTheme(themeName);
-    setChosenTheme(themeName);
   };
 
   const onClick = (level) => {
@@ -89,7 +87,6 @@ const Home = () => {
       <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#f4f4f9' }}>
         <Card sx={{ width: '100%', boxShadow: 3, borderRadius: 2, backgroundColor: '#3b3b3b' }}>
           <CardContent sx={{ textAlign: 'center', color: '#ffffff' }}>
-            
             <Typography variant="h6" sx={{ mt: 2 }}>
               Your High Scores (Lowest number of moves you took to complete the game):
             </Typography>
@@ -121,7 +118,6 @@ const Home = () => {
                       color: '#ffffff',
                       '&:hover': { backgroundColor: '#004d40' },
                     }}
-                    name="beginner"
                     onClick={() => onClick('beginner')}
                   >
                     Easy
@@ -138,7 +134,6 @@ const Home = () => {
                       color: '#ffffff',
                       '&:hover': { backgroundColor: '#01579b' },
                     }}
-                    name="intermediate"
                     onClick={() => onClick('intermediate')}
                   >
                     Medium
@@ -155,7 +150,6 @@ const Home = () => {
                       color: '#ffffff',
                       '&:hover': { backgroundColor: '#c2185b' },
                     }}
-                    name="expert"
                     onClick={() => onClick('expert')}
                   >
                     Hard

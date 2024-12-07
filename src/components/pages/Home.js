@@ -19,7 +19,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true); // Add loading state for async fetching
 
   useEffect(() => {
-    authContext.loadUser();
+    authContext.loadUser(); // Load the authenticated user
     getGames();
     // eslint-disable-next-line
   }, []);

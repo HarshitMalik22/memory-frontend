@@ -24,32 +24,34 @@ const Home = () => {
   }, []);
 
   const fetchHighscore = async (level) => {
-    try {
-      const token = localStorage.getItem('token'); // Get the token from localStorage
-      const userId = authContext.user?._id; // Get the user ID from context or use another source
-      if (!token || !userId) {
-        console.error('Token or User ID missing');
-        return 'Token or User ID missing';
-      }
+  try {
+    const token = localStorage.getItem('token'); // Retrieve token from localStorage
+    console.log("Token:", token);  // Log token to ensure it's being fetched
 
-      const res = await fetch(`${BASE_URL}/api/highscore/${level}/${userId}`, {
-        headers: { 'x-auth-token': token },
-      });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`HTTP error! Status: ${res.status}, Message: ${errorText}`);
-      }
-
-      const data = await res.json();
-      console.log(`Fetched high score for ${level}:`, data);
-
-      return data.moves ? data.moves : 'No high score yet'; // Return the user's high score or a default message
-    } catch (err) {
-      console.error('Error fetching high score:', err);
-      return 'Error fetching high score';
+    if (!token) {
+      console.error('No token found');
+      return 'Token is missing';
     }
-  };
+
+    const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
+      headers: { 'x-auth-token': token },
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();  // Capture any error message from the server
+      throw new Error(`HTTP error! Status: ${res.status}, Message: ${errorText}`);
+    }
+
+    const data = await res.json();
+    console.log(`Fetched high score for ${level}:`, data);
+
+    return data.moves ? data.moves : 'No high score yet';
+  } catch (err) {
+    console.error('Error fetching high score:', err);
+    return 'Error fetching high score';
+  }
+};
+
 
   useEffect(() => {
     let isMounted = true; // Track whether the component is still mounted

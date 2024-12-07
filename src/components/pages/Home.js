@@ -26,17 +26,26 @@ const Home = () => {
 
   const fetchHighscore = async (level) => {
     try {
+      const token = localStorage.token;
+      if (!token) {
+        console.error('No token found');
+        return 'Token is missing';
+      }
+
       const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
-        headers: { 'x-auth-token': localStorage.token },
+        headers: { 'x-auth-token': token },
       });
 
       if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
+        const errorText = await res.text();  // Capture any error message from the server
+        throw new Error(`HTTP error! Status: ${res.status}, Message: ${errorText}`);
       }
 
       const data = await res.json();
       console.log(`Fetched high score for ${level}:`, data);
-      return data.moves === 'No high score yet' ? 'No high score yet' : data.moves;
+
+      // Check if high score exists and return it, else return a default message
+      return data.moves ? data.moves : 'No high score yet';
     } catch (err) {
       console.error('Error fetching high score:', err);
       return 'Error fetching high score';
@@ -44,15 +53,25 @@ const Home = () => {
   };
 
   useEffect(() => {
+    let isMounted = true; // Track whether the component is still mounted
+
     const fetchAllHighScores = async () => {
       setLoading(true);  // Set loading to true while fetching
       const beginner = await fetchHighscore('beginner');
       const intermediate = await fetchHighscore('intermediate');
       const expert = await fetchHighscore('expert');
-      setHighScores({ beginner, intermediate, expert });
-      setLoading(false);  // Set loading to false when fetching completes
+
+      if (isMounted) {
+        setHighScores({ beginner, intermediate, expert });
+        setLoading(false);  // Set loading to false when fetching completes
+      }
     };
+
     fetchAllHighScores();
+
+    return () => {
+      isMounted = false; // Clean up flag on component unmount
+    };
   }, []);
 
   const handleClick = (e) => {
@@ -61,8 +80,8 @@ const Home = () => {
     setChosenTheme(themeName);
   };
 
-  const onClick = (e) => {
-    updateCurrentLevel(e.target.name);
+  const onClick = (level) => {
+    updateCurrentLevel(level);
   };
 
   return (
@@ -105,7 +124,7 @@ const Home = () => {
                       '&:hover': { backgroundColor: '#004d40' },
                     }}
                     name="beginner"
-                    onClick={onClick}
+                    onClick={() => onClick('beginner')}
                   >
                     Easy
                   </Button>
@@ -122,7 +141,7 @@ const Home = () => {
                       '&:hover': { backgroundColor: '#01579b' },
                     }}
                     name="intermediate"
-                    onClick={onClick}
+                    onClick={() => onClick('intermediate')}
                   >
                     Medium
                   </Button>
@@ -139,7 +158,7 @@ const Home = () => {
                       '&:hover': { backgroundColor: '#c2185b' },
                     }}
                     name="expert"
-                    onClick={onClick}
+                    onClick={() => onClick('expert')}
                   >
                     Hard
                   </Button>

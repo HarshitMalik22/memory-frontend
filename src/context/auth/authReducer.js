@@ -9,19 +9,27 @@ import {
   REGISTER_SUCCESS,
 } from '../types';
 
+const initialState = {
+  token: localStorage.getItem('token'), // Initialize token from localStorage
+  user: null, // User object will store user info (including userID)
+  isAuthenticated: false,
+  loading: true,
+  error: null,
+};
+
 // authReducer returns object state based on the type passed in using a switch
-const authReducer = (state, action) => {
+const authReducer = (state = initialState, action) => {
   switch (action.type) {
     case USER_LOADED:
       return {
         ...state,
         isAuthenticated: true,
         loading: false,
-        user: action.payload,
+        user: action.payload, // Store the user object (including userID) here
       };
     case REGISTER_SUCCESS:
     case LOGIN_SUCCESS:
-      localStorage.setItem('token', action.payload.token);
+      localStorage.setItem('token', action.payload.token); // Save token to localStorage
       return {
         ...state,
         ...action.payload,
@@ -32,7 +40,7 @@ const authReducer = (state, action) => {
     case AUTH_ERROR:
     case LOGIN_FAIL:
     case LOGOUT:
-      localStorage.removeItem('token');
+      localStorage.removeItem('token'); // Remove token on logout or auth error
       return {
         ...state,
         token: null,

@@ -23,30 +23,41 @@ const Home = () => {
   }, []);
 
   const fetchHighscore = async (level) => {
-    try {
-      const token = localStorage.getItem('token');
+  try {
+    const token = localStorage.getItem('token');
 
-      if (!token) {
-        console.error('Token missing');
-        return 'Token is missing';
-      }
-
-      const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
-        headers: { 'x-auth-token': token },
-      });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`HTTP error! Status: ${res.status}, Message: ${errorText}`);
-      }
-
-      const data = await res.json();
-      return data.moves ? data.moves : 'No high score yet';
-    } catch (err) {
-      console.error('Error fetching high score:', err);
-      return 'Error fetching high score';
+    if (!token) {
+      console.error('Token missing');
+      return 'Token is missing';
     }
-  };
+
+    const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`HTTP error! Status: ${res.status}, Message: ${errorText}`);
+    }
+
+    const data = await res.json();
+
+    // Ensure proper response structure handling
+    if (data && data.moves !== undefined) {
+      return data.moves;
+    } else {
+      return 'No high score yet';
+    }
+  } catch (err) {
+    console.error('Error fetching high score:', err);
+    return 'Error fetching high score';
+  }
+};
+
 
   useEffect(() => {
     let isMounted = true;

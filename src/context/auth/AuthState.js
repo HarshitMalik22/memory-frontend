@@ -39,16 +39,20 @@ const AuthState = (props) => {
 
     try {
       // Use the backend URL
-      const res = await axios.get(`${BASE_URL}/api/auth`, { headers: { Authorization: `Bearer ${localStorage.token}` } });
+      const res = await axios.get(`${BASE_URL}/api/auth`, {
+        headers: { Authorization: `Bearer ${localStorage.token}` },
+      });
 
       dispatch({
         type: USER_LOADED,
         payload: res.data,
       });
     } catch (error) {
+      const errorMsg = error.response?.data?.msg || 'Error loading user';
+      console.error('Error loading user:', errorMsg);
       dispatch({
         type: AUTH_ERROR,
-        payload: error.response?.data?.msg || 'Error loading user',
+        payload: errorMsg,
       });
     }
   };
@@ -148,4 +152,3 @@ const AuthState = (props) => {
 };
 
 export default AuthState;
-

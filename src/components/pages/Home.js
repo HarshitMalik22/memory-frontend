@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Box, Button, Typography, Grid, Card, CardContent } from '@mui/material';
+import { Box, Button, Typography, Grid, Card, CardContent, CircularProgress } from '@mui/material';
 import HistoryContext from '../../context/history/historyContext';
 import AuthContext from '../../context/auth/authContext';
 import { BASE_URL } from '../../config';
@@ -89,71 +89,88 @@ const Home = () => {
     updateCurrentLevel(level);
   };
 
+  // Ensure proper user loading and redirection logic
+  if (authContext.loading) {
+    // While loading user data, show a loading spinner
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!authContext.isAuthenticated) {
+    // If user is not authenticated, redirect to SignIn page (you may use react-router for redirecting)
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography variant="h6">You need to sign in to access the Home page.</Typography>
+      </Box>
+    );
+  }
+
   return (
-    !authContext.loading && (
-      <Box
+    <Box
+      sx={{
+        p: 4,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        backgroundColor: '#f4f4f9',
+      }}
+    >
+      <Card
         sx={{
-          p: 4,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          backgroundColor: '#f4f4f9',
+          width: '100%',
+          boxShadow: 3,
+          borderRadius: 2,
+          backgroundColor: '#3b3b3b',
         }}
       >
-        <Card
-          sx={{
-            width: '100%',
-            boxShadow: 3,
-            borderRadius: 2,
-            backgroundColor: '#3b3b3b',
-          }}
-        >
-          <CardContent sx={{ textAlign: 'center', color: '#ffffff' }}>
-            <Typography variant="h6" sx={{ mt: 2 }}>
-              Your High Scores (Lowest number of moves you took to complete the game):
-            </Typography>
-            <Grid container spacing={4} sx={{ mt: 2 }}>
-              {['beginner', 'intermediate', 'expert'].map((level, index) => (
-                <Grid key={level} item xs={4} sx={{ textAlign: 'center' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+        <CardContent sx={{ textAlign: 'center', color: '#ffffff' }}>
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            Your High Scores (Lowest number of moves you took to complete the game):
+          </Typography>
+          <Grid container spacing={4} sx={{ mt: 2 }}>
+            {['beginner', 'intermediate', 'expert'].map((level, index) => (
+              <Grid key={level} item xs={4} sx={{ textAlign: 'center' }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                  {level.charAt(0).toUpperCase() + level.slice(1)}
+                </Typography>
+                <Typography sx={{ color: '#f9f9f9' }}>
+                  {loading ? 'Loading...' : highScores[level]}
+                </Typography>
+              </Grid>
+            ))}
+          </Grid>
+          <Typography variant="h5" sx={{ mt: 4, fontWeight: 600 }}>
+            Start A New Game Below!
+          </Typography>
+          <Grid container spacing={4} sx={{ mt: 4 }}>
+            {['beginner', 'intermediate', 'expert'].map((level) => (
+              <Grid key={level} item xs={4}>
+                <Link to="/game" style={{ textDecoration: 'none' }}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    sx={{
+                      backgroundColor: level === 'beginner' ? '#00796b' : level === 'intermediate' ? '#0288d1' : '#d32f2f',
+                      color: '#ffffff',
+                      '&:hover': {
+                        backgroundColor:
+                          level === 'beginner' ? '#004d40' : level === 'intermediate' ? '#01579b' : '#c2185b',
+                      },
+                    }}
+                    onClick={() => onClick(level)}
+                  >
                     {level.charAt(0).toUpperCase() + level.slice(1)}
-                  </Typography>
-                  <Typography sx={{ color: '#f9f9f9' }}>
-                    {loading ? 'Loading...' : highScores[level]}
-                  </Typography>
-                </Grid>
-              ))}
-            </Grid>
-            <Typography variant="h5" sx={{ mt: 4, fontWeight: 600 }}>
-              Start A New Game Below!
-            </Typography>
-            <Grid container spacing={4} sx={{ mt: 4 }}>
-              {['beginner', 'intermediate', 'expert'].map((level) => (
-                <Grid key={level} item xs={4}>
-                  <Link to="/game" style={{ textDecoration: 'none' }}>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      sx={{
-                        backgroundColor: level === 'beginner' ? '#00796b' : level === 'intermediate' ? '#0288d1' : '#d32f2f',
-                        color: '#ffffff',
-                        '&:hover': {
-                          backgroundColor:
-                            level === 'beginner' ? '#004d40' : level === 'intermediate' ? '#01579b' : '#c2185b',
-                        },
-                      }}
-                      onClick={() => onClick(level)}
-                    >
-                      {level.charAt(0).toUpperCase() + level.slice(1)}
-                    </Button>
-                  </Link>
-                </Grid>
-              ))}
-            </Grid>
-          </CardContent>
-        </Card>
-      </Box>
-    )
+                  </Button>
+                </Link>
+              </Grid>
+            ))}
+          </Grid>
+        </CardContent>
+      </Card>
+    </Box>
   );
 };
 

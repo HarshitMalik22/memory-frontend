@@ -14,8 +14,9 @@ const Game = () => {
 
   const [active, setActive] = useState(true);
   const [curNumOfMoves, setCurNumOfMoves] = useState(0);
+  const [highScore, setHighScore] = useState('Not Played Yet');
   const [newGame, setNewGame] = useState({
-    gameLevel: '',
+    gameLevel: currentLevel || '',
     numOfMoves: 0,
     date: Date.now(),
   });
@@ -23,41 +24,75 @@ const Game = () => {
   const { width, height } = useWindowSize();
 
   useEffect(() => {
-    authContext.loadUser();
-  }, []);
+    if (!authContext.user) {
+      console.warn('User is not authenticated.');
+      return;
+    }
 
-  const updateActive = () => {
-    setActive((cur) => !cur);
-  };
+    const fetchHighScore = async () => {
+      try {
+        if (!currentLevel || !authContext.user.email) {
+          console.warn('Missing level or user information.');
+          return;
+        }
 
-  const updateCurNumOfMoves = (count) => {
-    setCurNumOfMoves(count);
-  };
+        const response = await fetch(`/api/auth/highscore/${currentLevel}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': localStorage.token, // Ensure correct token handling
+          },
+        });
 
-  const updateNewGame = (newGame) => {
-    setNewGame(newGame);
-  };
+        if (!response.ok) throw new Error('Failed to fetch high score.');
+
+        const data = await response.json();
+        setHighScore(data.moves ?? 'Not Played Yet');
+      } catch (error) {
+        console.error('Error fetching high score:', error.message);
+        setHighScore('Not Played Yet');
+      }
+    };
+
+    fetchHighScore();
+  }, [currentLevel, authContext.user?.email]);
+
+  const updateActive = () => setActive((prev) => !prev);
+  const updateCurNumOfMoves = (count) => setCurNumOfMoves(count);
+  const updateNewGame = (updatedGame) => setNewGame(updatedGame);
 
   const submitHighScore = async (username, moves, level) => {
-    console.log(`Submitting high score: ${moves} moves for ${username} on level ${level}`);
-    await fetch('/api/highscore', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-auth-token': localStorage.token,
-      },
-      body: JSON.stringify({ username, moves, level }),
-    });
+    try {
+      const response = await fetch(`/api/auth/highscore/${level}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': localStorage.token, // Ensure correct token handling
+        },
+        body: JSON.stringify({ username, moves, level }),
+      });
+
+      if (!response.ok) throw new Error('Failed to submit high score.');
+
+      const data = await response.json();
+      console.log(data.message);
+
+      if (+moves < +highScore || highScore === 'Not Played Yet') {
+        setHighScore(moves);
+      }
+    } catch (error) {
+      console.error('Error submitting high score:', error.message);
+    }
   };
 
-  const onClick = async (e) => {
+  const handleEndGame = async () => {
     addNewGame(newGame);
-    await submitHighScore(authContext.user.name, curNumOfMoves, currentLevel);
+    await submitHighScore(authContext.user.email, curNumOfMoves, currentLevel);
   };
 
   return (
     !authContext.loading && (
-      <div className='game-board'>
+      <div className="game-board">
         {active ? (
           <Cards
             updateActive={updateActive}
@@ -68,25 +103,25 @@ const Game = () => {
           />
         ) : (
           <>
-            {/* Confetti Animation */}
-            <Confetti width={width} height={height} recycle={false} />
-
-            <div className='row container'>
-              <div className='col s12'>
-                <div className='card blue-grey darken-1 small'>
-                  <div className='card-content white-text'>
-                    <span className='center card-title'>Congratulations!</span>
+            {width && height && !active && (
+              <Confetti width={width} height={height} recycle={false} />
+            )}
+            <div className="row container">
+              <div className="col s12">
+                <div className="card blue-grey darken-1 small">
+                  <div className="card-content white-text">
+                    <span className="center card-title">Congratulations!</span>
                     <br />
-                    <span className='center card-title'>
+                    <span className="center card-title">
                       You won in {curNumOfMoves} moves!
                     </span>
                     <br />
-                    <div className='col s12 card-action'>
-                      <div className='col s12 center'>
+                    <div className="col s12 card-action">
+                      <div className="col s12 center">
                         <Link
-                          to='/'
-                          className='waves-effect waves-red btn-flat'
-                          onClick={onClick}
+                          to="/"
+                          className="waves-effect waves-red btn-flat"
+                          onClick={handleEndGame}
                         >
                           End Game
                         </Link>

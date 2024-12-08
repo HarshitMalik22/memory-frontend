@@ -31,13 +31,13 @@ const Home = () => {
         return 'Token is missing';
       }
 
-      const res = await fetch(${BASE_URL}/api/highscore/${level}, {
+      const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
         headers: { 'x-auth-token': token },
       });
 
       if (!res.ok) {
         const errorText = await res.text();
-        throw new Error(HTTP error! Status: ${res.status}, Message: ${errorText});
+        throw new Error(`HTTP error! Status: ${res.status}, Message: ${errorText}`);
       }
 
       const data = await res.json();

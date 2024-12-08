@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Box, Button, Typography, Grid, Card, CardContent } from '@mui/material';
 import HistoryContext from '../../context/history/historyContext';
 import AuthContext from '../../context/auth/authContext';
-import { BASE_URL } from '../../config';  // Import the BASE_URL from config file
+import { BASE_URL } from '../../config';
 
 const Home = () => {
   const historyContext = useContext(HistoryContext);
@@ -15,68 +15,58 @@ const Home = () => {
     intermediate: 'Loading...',
     expert: 'Loading...',
   });
-  const [loading, setLoading] = useState(true); // Add loading state for async fetching
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    authContext.loadUser(); // Load the authenticated user
+    authContext.loadUser();
     getGames();
-    // eslint-disable-next-line
   }, []);
 
   const fetchHighscore = async (level) => {
-  try {
-    const token = localStorage.getItem('token'); // Retrieve token from localStorage
-    const email = localStorage.getItem('email');  // Assuming email is saved in localStorage after login
+    try {
+      const token = localStorage.getItem('token');
 
-    console.log("Token:", token);  // Log token to ensure it's being fetched
-    console.log("Email:", email);  // Log email to ensure it's being fetched
+      if (!token) {
+        console.error('Token missing');
+        return 'Token is missing';
+      }
 
-    if (!token || !email) {
-      console.error('Token or Email missing');
-      return 'Token or Email is missing';
+      const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
+        headers: { 'x-auth-token': token },
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`HTTP error! Status: ${res.status}, Message: ${errorText}`);
+      }
+
+      const data = await res.json();
+      return data.moves ? data.moves : 'No high score yet';
+    } catch (err) {
+      console.error('Error fetching high score:', err);
+      return 'Error fetching high score';
     }
-
-    // Add email as a query parameter or part of the URL
-    const res = await fetch(`${BASE_URL}/api/highscore/${level}?email=${email}`, {
-      headers: { 'x-auth-token': token },
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();  // Capture any error message from the server
-      throw new Error(`HTTP error! Status: ${res.status}, Message: ${errorText}`);
-    }
-
-    const data = await res.json();
-    console.log(`Fetched high score for ${level}:`, data);
-
-    return data.moves ? data.moves : 'No high score yet';
-  } catch (err) {
-    console.error('Error fetching high score:', err);
-    return 'Error fetching high score';
-  }
-};
-
-
+  };
 
   useEffect(() => {
-    let isMounted = true; // Track whether the component is still mounted
+    let isMounted = true;
 
     const fetchAllHighScores = async () => {
-      setLoading(true);  // Set loading to true while fetching
+      setLoading(true);
       const beginner = await fetchHighscore('beginner');
       const intermediate = await fetchHighscore('intermediate');
       const expert = await fetchHighscore('expert');
 
       if (isMounted) {
         setHighScores({ beginner, intermediate, expert });
-        setLoading(false);  // Set loading to false when fetching completes
+        setLoading(false);
       }
     };
 
     fetchAllHighScores();
 
     return () => {
-      isMounted = false; // Clean up flag on component unmount
+      isMounted = false;
     };
   }, []);
 
@@ -172,3 +162,4 @@ const Home = () => {
 };
 
 export default Home;
+

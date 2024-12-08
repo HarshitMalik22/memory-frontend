@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Box, Button, Typography, Grid, Card, CardContent, CircularProgress } from '@mui/material';
 import HistoryContext from '../../context/history/historyContext';
 import AuthContext from '../../context/auth/authContext';
@@ -8,6 +8,7 @@ import { BASE_URL } from '../../config';
 const Home = () => {
   const historyContext = useContext(HistoryContext);
   const authContext = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const { games, updateCurrentLevel, updateCurrentTheme, getGames } = historyContext;
   const [highScores, setHighScores] = useState({
@@ -89,9 +90,9 @@ const Home = () => {
     updateCurrentLevel(level);
   };
 
-  // Ensure proper user loading and redirection logic
+  // Handle user not authenticated and loading states
   if (authContext.loading) {
-    // While loading user data, show a loading spinner
+    // Show loading spinner while authContext is loading
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress />
@@ -100,12 +101,9 @@ const Home = () => {
   }
 
   if (!authContext.isAuthenticated) {
-    // If user is not authenticated, redirect to SignIn page (you may use react-router for redirecting)
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Typography variant="h6">You need to sign in to access the Home page.</Typography>
-      </Box>
-    );
+    // If user is not authenticated, redirect to SignIn page
+    navigate('/signin'); // Ensure the user is redirected to SignIn page
+    return null; // Don't render the rest of the component
   }
 
   return (
@@ -175,4 +173,5 @@ const Home = () => {
 };
 
 export default Home;
+
 

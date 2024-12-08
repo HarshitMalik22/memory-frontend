@@ -36,17 +36,11 @@ const Game = () => {
           return;
         }
 
-        const token = localStorage.getItem('token');
-        if (!token) {
-          console.warn('Token is missing.');
-          return;
-        }
-
         const response = await fetch(`/api/auth/highscore/${currentLevel}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'x-auth-token': token,
+            'x-auth-token': localStorage.token, // Ensure correct token handling
           },
         });
 
@@ -69,17 +63,11 @@ const Game = () => {
 
   const submitHighScore = async (username, moves, level) => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.warn('Token is missing.');
-        return;
-      }
-
       const response = await fetch(`/api/auth/highscore/${level}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-auth-token': token,
+          'x-auth-token': localStorage.token, // Ensure correct token handling
         },
         body: JSON.stringify({ username, moves, level }),
       });
@@ -151,3 +139,4 @@ const Game = () => {
 };
 
 export default Game;
+

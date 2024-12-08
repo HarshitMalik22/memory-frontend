@@ -17,37 +17,45 @@ const Home = () => {
   });
   const [loading, setLoading] = useState(true);
 
+  // Load user and games on component mount
   useEffect(() => {
     authContext.loadUser();
     getGames();
-  }, []);
+  }, [authContext, getGames]);
 
+  // Fetch high scores for a specific level
   const fetchHighscore = async (level) => {
     try {
       const token = localStorage.getItem('token');
 
       if (!token) {
-        console.error('Token missing');
-        return 'Token is missing';
+        console.error('Token is missing');
+        return 'Error: Authorization token missing';
       }
 
-      const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
-        headers: { 'x-auth-token': token },
+      const res = await fetch(`${BASE_URL}/api/auth/highscore/${level}`, {
+        method: 'GET',
+        headers: {
+          'x-auth-token': token,
+          'Content-Type': 'application/json',
+        },
       });
 
       if (!res.ok) {
         const errorText = await res.text();
-        throw new Error(`HTTP error! Status: ${res.status}, Message: ${errorText}`);
+        console.error(`Error fetching high score for ${level}:`, errorText);
+        return 'No high score yet';
       }
 
       const data = await res.json();
-      return data.moves ? data.moves : 'No high score yet';
+      return data.moves || 'No high score yet';
     } catch (err) {
-      console.error('Error fetching high score:', err);
+      console.error(`Error fetching high score for ${level}:`, err.message);
       return 'Error fetching high score';
     }
   };
 
+  // Fetch high scores for all levels
   useEffect(() => {
     let isMounted = true;
 
@@ -70,89 +78,77 @@ const Home = () => {
     };
   }, []);
 
+  // Update the theme based on user selection
   const handleClick = (e) => {
     const themeName = e.target.name;
     updateCurrentTheme(themeName);
   };
 
+  // Update the level based on user selection
   const onClick = (level) => {
     updateCurrentLevel(level);
   };
 
   return (
     !authContext.loading && (
-      <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#f4f4f9' }}>
-        <Card sx={{ width: '100%', boxShadow: 3, borderRadius: 2, backgroundColor: '#3b3b3b' }}>
+      <Box
+        sx={{
+          p: 4,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          backgroundColor: '#f4f4f9',
+        }}
+      >
+        <Card
+          sx={{
+            width: '100%',
+            boxShadow: 3,
+            borderRadius: 2,
+            backgroundColor: '#3b3b3b',
+          }}
+        >
           <CardContent sx={{ textAlign: 'center', color: '#ffffff' }}>
             <Typography variant="h6" sx={{ mt: 2 }}>
               Your High Scores (Lowest number of moves you took to complete the game):
             </Typography>
             <Grid container spacing={4} sx={{ mt: 2 }}>
-              <Grid item xs={4} sx={{ textAlign: 'center' }}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Easy</Typography>
-                <Typography sx={{ color: '#f9f9f9' }}>{loading ? 'Loading...' : highScores.beginner}</Typography>
-              </Grid>
-              <Grid item xs={4} sx={{ textAlign: 'center' }}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Medium</Typography>
-                <Typography sx={{ color: '#f9f9f9' }}>{loading ? 'Loading...' : highScores.intermediate}</Typography>
-              </Grid>
-              <Grid item xs={4} sx={{ textAlign: 'center' }}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Hard</Typography>
-                <Typography sx={{ color: '#f9f9f9' }}>{loading ? 'Loading...' : highScores.expert}</Typography>
-              </Grid>
+              {['beginner', 'intermediate', 'expert'].map((level, index) => (
+                <Grid key={level} item xs={4} sx={{ textAlign: 'center' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                  </Typography>
+                  <Typography sx={{ color: '#f9f9f9' }}>
+                    {loading ? 'Loading...' : highScores[level]}
+                  </Typography>
+                </Grid>
+              ))}
             </Grid>
             <Typography variant="h5" sx={{ mt: 4, fontWeight: 600 }}>
               Start A New Game Below!
             </Typography>
             <Grid container spacing={4} sx={{ mt: 4 }}>
-              <Grid item xs={4}>
-                <Link to="/game" style={{ textDecoration: 'none' }}>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    sx={{
-                      backgroundColor: '#00796b',
-                      color: '#ffffff',
-                      '&:hover': { backgroundColor: '#004d40' },
-                    }}
-                    onClick={() => onClick('beginner')}
-                  >
-                    Easy
-                  </Button>
-                </Link>
-              </Grid>
-              <Grid item xs={4}>
-                <Link to="/game" style={{ textDecoration: 'none' }}>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    sx={{
-                      backgroundColor: '#0288d1',
-                      color: '#ffffff',
-                      '&:hover': { backgroundColor: '#01579b' },
-                    }}
-                    onClick={() => onClick('intermediate')}
-                  >
-                    Medium
-                  </Button>
-                </Link>
-              </Grid>
-              <Grid item xs={4}>
-                <Link to="/game" style={{ textDecoration: 'none' }}>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    sx={{
-                      backgroundColor: '#d32f2f',
-                      color: '#ffffff',
-                      '&:hover': { backgroundColor: '#c2185b' },
-                    }}
-                    onClick={() => onClick('expert')}
-                  >
-                    Hard
-                  </Button>
-                </Link>
-              </Grid>
+              {['beginner', 'intermediate', 'expert'].map((level) => (
+                <Grid key={level} item xs={4}>
+                  <Link to="/game" style={{ textDecoration: 'none' }}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      sx={{
+                        backgroundColor: level === 'beginner' ? '#00796b' : level === 'intermediate' ? '#0288d1' : '#d32f2f',
+                        color: '#ffffff',
+                        '&:hover': {
+                          backgroundColor:
+                            level === 'beginner' ? '#004d40' : level === 'intermediate' ? '#01579b' : '#c2185b',
+                        },
+                      }}
+                      onClick={() => onClick(level)}
+                    >
+                      {level.charAt(0).toUpperCase() + level.slice(1)}
+                    </Button>
+                  </Link>
+                </Grid>
+              ))}
             </Grid>
           </CardContent>
         </Card>
@@ -160,5 +156,8 @@ const Home = () => {
     )
   );
 };
+
+export default Home;
+
 
 export default Home;

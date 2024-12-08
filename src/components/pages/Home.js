@@ -33,30 +33,37 @@ const Home = () => {
 
     const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-auth-token': token,
-      },
+      headers: { 'x-auth-token': token },
     });
 
+    // Handle 401 error (unauthorized) and log the user out if the token is invalid/expired
+    if (res.status === 401) {
+      console.error('Invalid or expired token');
+      localStorage.removeItem('token');  // Clear the invalid token
+      window.location.href = '/login';  // Redirect to login page
+      return 'Invalid or expired token';
+    }
+
+    // Handle other HTTP errors
     if (!res.ok) {
       const errorText = await res.text();
       throw new Error(`HTTP error! Status: ${res.status}, Message: ${errorText}`);
     }
 
     const data = await res.json();
-
-    // Ensure proper response structure handling
-    if (data && data.moves !== undefined) {
-      return data.moves;
+    
+    if (data.moves !== undefined) {
+      return data.moves || 'No high score yet';
     } else {
-      return 'No high score yet';
+      console.error('Error: No moves data returned');
+      return 'Error: No moves data returned';
     }
   } catch (err) {
     console.error('Error fetching high score:', err);
     return 'Error fetching high score';
   }
 };
+
 
 
   useEffect(() => {

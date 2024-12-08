@@ -23,48 +23,30 @@ const Home = () => {
   }, []);
 
   const fetchHighscore = async (level) => {
-  try {
-    const token = localStorage.getItem('token');
+    try {
+      const token = localStorage.getItem('token');
 
-    if (!token) {
-      console.error('Token missing');
-      return 'Token is missing';
+      if (!token) {
+        console.error('Token missing');
+        return 'Token is missing';
+      }
+
+      const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
+        headers: { 'x-auth-token': token },
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`HTTP error! Status: ${res.status}, Message: ${errorText}`);
+      }
+
+      const data = await res.json();
+      return data.moves ? data.moves : 'No high score yet';
+    } catch (err) {
+      console.error('Error fetching high score:', err);
+      return 'Error fetching high score';
     }
-
-    const res = await fetch(`${BASE_URL}/api/highscore/${level}`, {
-      method: 'GET',
-      headers: { 'x-auth-token': token },
-    });
-
-    // Handle 401 error (unauthorized) and log the user out if the token is invalid/expired
-    if (res.status === 401) {
-      console.error('Invalid or expired token');
-      localStorage.removeItem('token');  // Clear the invalid token
-      window.location.href = '/login';  // Redirect to login page
-      return 'Invalid or expired token';
-    }
-
-    // Handle other HTTP errors
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`HTTP error! Status: ${res.status}, Message: ${errorText}`);
-    }
-
-    const data = await res.json();
-    
-    if (data.moves !== undefined) {
-      return data.moves || 'No high score yet';
-    } else {
-      console.error('Error: No moves data returned');
-      return 'Error: No moves data returned';
-    }
-  } catch (err) {
-    console.error('Error fetching high score:', err);
-    return 'Error fetching high score';
-  }
-};
-
-
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -180,4 +162,3 @@ const Home = () => {
 };
 
 export default Home;
-
